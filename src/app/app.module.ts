@@ -109,6 +109,7 @@ import { WordFrequencyPipe } from './pipes/word-frequency.pipe';
 import { WrapperPipe } from './pipes/wrapper.pipe';
 import { YearFilterPipe } from './pipes/year-filter.pipe';
 import { YearPipe } from './pipes/year.pipe';
+import {PasswordSettingsComponent} from "./components/password-settings/password-settings.component";
 
 @NgModule({
   declarations: [
@@ -187,18 +188,19 @@ import { YearPipe } from './pipes/year.pipe';
     YearFilterPipe,
     YearPipe,
   ],
-  imports: [
-    // AnQrcodeModule, // TODO: enable and fix later!
-    AppRoutingModule,
-    BrowserAnimationsModule,
-    BrowserModule,
-    FormsModule,
-    HttpClientModule,
-    MatDialogModule,
-    MatSnackBarModule,
-    TranslateModule.forRoot(),
-    VirtualScrollerModule,
-  ],
+    imports: [
+        // AnQrcodeModule, // TODO: enable and fix later!
+        AppRoutingModule,
+        BrowserAnimationsModule,
+        BrowserModule,
+        FormsModule,
+        HttpClientModule,
+        MatDialogModule,
+        MatSnackBarModule,
+        TranslateModule.forRoot(),
+        VirtualScrollerModule,
+        PasswordSettingsComponent,
+    ],
   providers: [
     AutoTagsSaveService,
     AutoTagsService,
