@@ -304,6 +304,7 @@ function openThisDamnFile(pathToVhaFile: string): void {
       app.addRecentDocument(pathToVhaFile);
 
       const finalObject: FinalObject = JSON.parse(data);
+      // console.log(`final object keys is ${finalObject.hubName}`);
 
       // set globals from file
       GLOBALS.currentlyOpenVhaFile = pathToVhaFile;
@@ -314,9 +315,7 @@ function openThisDamnFile(pathToVhaFile: string): void {
       console.log('setting inputDirs');
       console.log(finalObject.inputDirs);
       GLOBALS.selectedSourceFolders = finalObject.inputDirs;
-
       sendFinalObjectToAngular(finalObject, GLOBALS);
-
       setUpDirectoryWatchers(finalObject.inputDirs, finalObject.images);
     }
   });
@@ -403,7 +402,6 @@ ipcMain.on('start-the-import', (event, wizard: WizardOptions) => {
 
     writeVhaFileAndStartExtraction();
   }
-
 });
 
 /**
@@ -460,7 +458,8 @@ ipcMain.on('system-open-file-through-modal', (event, somethingElse) => {  // TOD
  * Open .vha2 file (from given path)
  * save current VHA file to disk, if provided
  */
-ipcMain.on('load-this-vha-file', (event, pathToVhaFile: string, finalObjectToSave: FinalObject) => {
+ipcMain.on('load-this-vha-file',
+  (event, pathToVhaFile: string, finalObjectToSave: FinalObject) => {
 
   if (finalObjectToSave !== null) {
 

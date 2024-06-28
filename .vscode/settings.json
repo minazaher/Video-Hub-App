@@ -7,6 +7,6 @@
     "interfaces/*.js": true,
     "main.js": true,
     "node/*.js": true,
-    "src/**/*.js": true,
+    "src/**/*.js": true
   }
 }

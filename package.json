@@ -29,6 +29,7 @@
   "scripts": {
     "start": "npm-run-all -p electron:serve ng:serve",
     "build": "npm run electron:serve-tsc && ng build --base-href ./",
+    "debug": "npm-run-all -p \"electron:serve --inspect\" \"ng:serve --inspect\"",
     "build:prod": "npm run build -- -c production",
     "buildsize": "sh ./bin/buildSizeCheck.sh",
     "check": "npm run check:tsc && npm run check:lint",

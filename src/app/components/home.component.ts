@@ -246,6 +246,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     clipSnippets: 3,
     extractClips: false,
     futureHubName: '',
+    password: '',
     isFixedNumberOfScreenshots: true,
     screenshotSizeForImport: 288,
     selectedOutputFolder: '',
@@ -1005,7 +1006,8 @@ export class HomeComponent implements OnInit, AfterViewInit {
   }
 
   public loadThisVhaFile(fullPath: string): void {
-    this.electronService.ipcRenderer.send('load-this-vha-file', fullPath, this.getFinalObjectForSaving());
+    this.electronService.ipcRenderer.
+    send('load-this-vha-file', fullPath, this.getFinalObjectForSaving());
   }
 
   public loadFromFile(): void {
@@ -1711,6 +1713,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
       clipSnippets: 5,
       extractClips: false,
       futureHubName: '',
+      password: '',
       isFixedNumberOfScreenshots: this.wizard.isFixedNumberOfScreenshots ?? true,
       screenshotSizeForImport: this.wizard.screenshotSizeForImport ?? 288, // default
       selectedOutputFolder: '',
