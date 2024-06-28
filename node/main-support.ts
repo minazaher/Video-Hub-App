@@ -10,6 +10,7 @@ import type { VhaGlobals } from './main-globals';
 import { GLOBALS } from './main-globals'; // TODO -- eliminate dependence on `GLOBALS` in this file!
 
 import * as path from 'path';
+import {createDecipher} from "crypto";
 
 const exec = require('child_process').exec;
 const ffprobePath = require('@ffprobe-installer/ffprobe').path.replace('app.asar', 'app.asar.unpacked');
@@ -20,6 +21,7 @@ import type { Stats } from 'fs';
 import type { FinalObject, ImageElement, ScreenshotSettings, InputSources, ResolutionString } from '../interfaces/final-object.interface';
 import { NewImageElement } from '../interfaces/final-object.interface';
 import { startFileSystemWatching, resetWatchers } from './main-extract-async';
+import {createCipher} from "crypto";
 
 interface ResolutionMeta {
   label: ResolutionString;
@@ -224,6 +226,14 @@ export function writeVhaFileToDisk(finalObject: FinalObject, pathToTheFile: stri
 
   const json = JSON.stringify(finalObject);
 
+
+  const cipher = createCipher('aes-256-cbc', GLOBALS.hubPassword);
+  let encryptedData = cipher.update(json, 'utf8', 'hex');
+  encryptedData += cipher.final('hex');
+
+  console.log("data: " , encryptedData);
+
+
   // backup current file
   try {
     fs.renameSync(pathToTheFile, pathToTheFile + '.bak');
@@ -233,7 +243,8 @@ export function writeVhaFileToDisk(finalObject: FinalObject, pathToTheFile: stri
   }
 
   // write the file
-  fs.writeFile(pathToTheFile, json, 'utf8', done);
+  fs.writeFile(pathToTheFile, encryptedData, 'utf8', done);
+
   // TODO ? CATCH ERRORS ?
 }
 

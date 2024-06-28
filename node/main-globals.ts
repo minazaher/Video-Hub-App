@@ -5,7 +5,8 @@ export const GLOBALS: VhaGlobals = {
   currentlyOpenVhaFile: '',    // OFFICAL DECREE IN NODE WHICH FILE IS CURRENTLY OPEN !!!
   debug: false,
   demo: false,                 // update `package.json` version to `#.#.#-demo` when building the demo             <---- !!!
-  hubName: 'untitled',         // in case user doesn't name their hub any name
+  hubName: 'untitled',   // in case user doesn't name their hub any name
+  hubPassword: '',
   macVersion: false,           // auto updated by `main.ts`
   readyToQuit: false,          // hack to quit gracefully
   selectedOutputFolder: '',
@@ -32,6 +33,7 @@ export interface VhaGlobals {
   debug: boolean;
   demo: boolean;
   hubName: string;
+  hubPassword: string;
   macVersion: boolean;
   readyToQuit: boolean;
   screenshotSettings: ScreenshotSettings;

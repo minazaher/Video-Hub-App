@@ -16,7 +16,8 @@ export type InputSources = Record<number, SourceFolder>;
 
 export interface FinalObject {
   addTags: string[];             // tags to add
-  hubName: string;               // the name of the hub -- for recently-opened
+  hubName: string;  // the name of the hub -- for recently-opened
+  password: string ;
   images: ImageElement[];
   // inputDir: string;           // became `inputDirs` in VHA3 - gets upgraded to `inputDirs` on first open in VHA3
   inputDirs: InputSources;       // map the `inputSource` number to input directory (replaces `inputDir`)

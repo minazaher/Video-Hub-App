@@ -1066,6 +1066,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
       const propsToReturn: FinalObject = {
         addTags: this.autoTagsSaveService.getAddTags(),
         hubName: this.appState.hubName,
+        password: this.appState.hubPassword,
         images: this.imageElementService.imageElements,
         // TODO -- rename `selectedSourceFolder` and make sure to update `finalArrayNeedsSaving` when inputDirs changes
         inputDirs: this.sourceFolderService.selectedSourceFolder,

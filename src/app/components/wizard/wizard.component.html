@@ -92,6 +92,7 @@
     </span>
 
     <!-- STEP 2 -------------------------------------------------------------------------------- -->
+    <!--TODO: Password Validation and placeholder translation and view password button  -->
     <div [ngClass]="{  'current-step': wizard.futureHubName !== '' && wizard.password === '', 'fulfilled': wizard.password !== ''}" class="steps">
       2    </div>
     <input [(ngModel)]="wizard.password" type="password" class="filter-general input-filter hub-password-input">

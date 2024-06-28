@@ -52,6 +52,7 @@ export const AppState: AppStateInterface = { // AppState is saved into `settings
   currentView: 'showThumbnails',
   currentZoomLevel: 1,
   hubName: '',
+  hubPassword:'',
   imgsPerRow: DefaultImagesPerRow,
   language: 'en',
   menuHidden: false,
@@ -70,6 +71,7 @@ export interface AppStateInterface {
   currentView: SupportedView;
   currentZoomLevel: number;
   hubName: string;
+  hubPassword: string;
   imgsPerRow: RowNumbers;
   language: SupportedLanguage;
   menuHidden: boolean;
