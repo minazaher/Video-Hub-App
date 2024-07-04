@@ -1,7 +1,9 @@
 {
   "compileOnSave": false,
+
   "angularCompilerOptions": {
-    "strictTemplates": false
+    "strictTemplates": false,
+    "enableIvy": true
   },
   "compilerOptions": {
     "baseUrl": "",

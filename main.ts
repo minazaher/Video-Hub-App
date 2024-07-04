@@ -1,29 +1,17 @@
 // Update the `demo` and `version` when building
 import {GLOBALS} from './node/main-globals';
-import {createCipher} from 'crypto';
-
-
-GLOBALS.macVersion = process.platform === 'darwin';
-
 import * as path from 'path';
-
-const fs = require('fs');
-const electron = require('electron');
-const {nativeTheme} = require('electron');
-import {app, protocol, BrowserWindow, screen, dialog, systemPreferences, ipcMain} from 'electron';
-
-const windowStateKeeper = require('electron-window-state');
-
+import {app, BrowserWindow, dialog, ipcMain, protocol, screen, systemPreferences} from 'electron';
 // Methods
 import {createTouchBar} from './node/main-touch-bar';
 import {setUpIpcForServer} from './node/server';
 import {setUpIpcMessages} from './node/main-ipc';
 import {
+    parseAdditionalExtensions,
     sendFinalObjectToAngular,
     setUpDirectoryWatchers,
     upgradeToVersion3,
-    writeVhaFileToDisk,
-    parseAdditionalExtensions
+    writeVhaFileToDisk
 } from './node/main-support';
 
 // Interfaces
@@ -31,6 +19,16 @@ import {FinalObject} from './interfaces/final-object.interface';
 import {SettingsObject} from './interfaces/settings-object.interface';
 import {WizardOptions} from './interfaces/wizard-options.interface';
 import {preventSleep, resetAllQueues} from './node/main-extract-async';
+
+
+GLOBALS.macVersion = process.platform === 'darwin';
+
+const fs = require('fs');
+const electron = require('electron');
+const {nativeTheme} = require('electron');
+
+const windowStateKeeper = require('electron-window-state');
+const crypto = require('crypto')
 
 // Variables
 const pathToAppData = app.getPath('appData');
@@ -86,7 +84,9 @@ if (!gotTheLock) {
         // });
 
         if (argv.length > 1) {
-            openThisDamnFile(argv[argv.length - 1]);
+            console.log("We are stuck heeeeeeeeeere")
+            GLOBALS.angularApp.sender.send('please-open-wizard');
+            // openThisDamnFile(argv[argv.length - 1]);
         }
 
         // Someone tried to run a second instance, we should focus our window.
@@ -213,6 +213,7 @@ function createWindow() {
     // win.setMenu(null);
 }
 
+
 try {
 
     // OPEN FILE ON MAC FROM FILE DOUBLE CLICK
@@ -221,7 +222,7 @@ try {
         app.on('open-file', (event, filePath: string) => {
             if (filePath) {
                 if (!macFirstRun) {
-                    openThisDamnFile(filePath);
+                    openThisDamnFile(filePath, 1);
                 }
             }
         });
@@ -291,45 +292,126 @@ function getAngularToShutDown(): void {
     GLOBALS.angularApp.sender.send('please-shut-down-ASAP');
 }
 
+const algorithm = 'aes-256-ctr';
+const IV_LENGTH = 16;
+
+
 /**
  * Load the .vha2 file and send it to app
  * @param pathToVhaFile full path to the .vha2 file
  */
-function openThisDamnFile(pathToVhaFile: string): void {
-
+function openThisDamnFile(pathToVhaFile: string, flag: number): void {
+    console.log("I am from function Number " + flag);
     resetAllQueues();
+    macFirstRun = false;
 
-    macFirstRun = false;     // TODO - figure out how to open file when double click first time on Mac
-
-    if (userWantedToOpen) {                                          // TODO - clean up messy override
+    if (userWantedToOpen) {
         pathToVhaFile = userWantedToOpen;
         userWantedToOpen = undefined;
     }
-
     fs.readFile(pathToVhaFile, (err, data) => {
         if (err) {
             GLOBALS.angularApp.sender.send('show-msg-dialog', systemMessages.error, systemMessages.noSuchFileFound, pathToVhaFile);
             GLOBALS.angularApp.sender.send('please-open-wizard');
         } else {
-            app.addRecentDocument(pathToVhaFile);
-
-            const finalObject: FinalObject = JSON.parse(data);
-            // console.log(`final object keys is ${finalObject.hubName}`);
-
-            // set globals from file
-            GLOBALS.currentlyOpenVhaFile = pathToVhaFile;
-            GLOBALS.selectedOutputFolder = path.parse(pathToVhaFile).dir;
-            GLOBALS.hubName = finalObject.hubName;
-            GLOBALS.screenshotSettings = finalObject.screenshotSettings;
-            upgradeToVersion3(finalObject);
-            console.log('setting inputDirs');
-            console.log(finalObject.inputDirs);
-            GLOBALS.selectedSourceFolders = finalObject.inputDirs;
-            sendFinalObjectToAngular(finalObject, GLOBALS);
-            setUpDirectoryWatchers(finalObject.inputDirs, finalObject.images);
+            createPasswordPrompt().then(password => {
+                try {
+                    const decryptedData = decryptJson(data.toString(), password); // Use the provided password
+                    app.addRecentDocument(pathToVhaFile);
+                    // Process the decrypted data as needed
+                    GLOBALS.currentlyOpenVhaFile = pathToVhaFile;
+                    GLOBALS.selectedOutputFolder = path.parse(pathToVhaFile).dir;
+                    GLOBALS.hubName = decryptedData.hubName;
+                    GLOBALS.enteredPassword = password.toString();
+                    GLOBALS.screenshotSettings = decryptedData.screenshotSettings;
+                    upgradeToVersion3(decryptedData);
+                    console.log('setting inputDirs');
+                    console.log(decryptedData.inputDirs);
+                    GLOBALS.selectedSourceFolders = decryptedData.inputDirs;
+                    sendFinalObjectToAngular(decryptedData, GLOBALS);
+                    setUpDirectoryWatchers(decryptedData.inputDirs, decryptedData.images);
+                } catch (decryptionError) {
+                    GLOBALS.angularApp.sender.send('show-msg-dialog', systemMessages.error, 'Password is not correct.');
+                }
+            }).catch(err => {
+                GLOBALS.angularApp.sender.send('show-msg-dialog', systemMessages.error, `Password Prompt Error: ${err.message}`);
+            })
         }
     });
 }
+
+function openRecentFile(pathToVhaFile: string, password: string): void {
+    resetAllQueues();
+    macFirstRun = false;
+
+    if (userWantedToOpen) {
+        pathToVhaFile = userWantedToOpen;
+        userWantedToOpen = undefined;
+    }
+    fs.readFile(pathToVhaFile, (err, data) => {
+        if (err) {
+            GLOBALS.angularApp.sender.send('show-msg-dialog', systemMessages.error, systemMessages.noSuchFileFound, pathToVhaFile);
+            GLOBALS.angularApp.sender.send('please-open-wizard');
+        } else {
+            try {
+                const decryptedData = decryptJson(data.toString(), password); // Use the provided password
+                app.addRecentDocument(pathToVhaFile);
+                // Process the decrypted data as needed
+                GLOBALS.currentlyOpenVhaFile = pathToVhaFile;
+                GLOBALS.selectedOutputFolder = path.parse(pathToVhaFile).dir;
+                GLOBALS.hubName = decryptedData.hubName;
+                GLOBALS.screenshotSettings = decryptedData.screenshotSettings;
+                upgradeToVersion3(decryptedData);
+                console.log('setting inputDirs');
+                console.log(decryptedData.inputDirs);
+                GLOBALS.selectedSourceFolders = decryptedData.inputDirs;
+                sendFinalObjectToAngular(decryptedData, GLOBALS);
+                setUpDirectoryWatchers(decryptedData.inputDirs, decryptedData.images);
+            } catch (decryptionError) {
+                GLOBALS.angularApp.sender.send('show-msg-dialog', systemMessages.error, 'Password is not correct.');
+            }
+        }
+    });
+}
+
+function decryptJson(encryptedResult, password) {
+    try {
+        // Ensure GLOBALS.hubPassword is correctly set and available
+        if (!password) {
+            throw new Error('Password is not set.');
+
+        }
+        const secretKey = crypto.createHash('sha256').update(password).digest();
+
+        // Parse the IV and encrypted data
+        const [ivHex, encryptedHex] = encryptedResult.split(':');
+        if (!ivHex || !encryptedHex) {
+            throw new Error('Invalid encrypted result format.');
+        }
+
+        const iv = Buffer.from(ivHex, 'hex');
+        const encryptedData = Buffer.from(encryptedHex, 'hex');
+
+        // Debugging: Log the key, IV, and encrypted data
+        console.log('Secret Key:', secretKey.toString('hex'));
+        console.log('IV:', iv.toString('hex'));
+        console.log('Encrypted Data:', encryptedData.toString('hex'));
+
+        // Create a decipher object
+        const decipher = crypto.createDecipheriv('aes-256-cbc', secretKey, iv);
+
+        // Decrypt the data
+        let decrypted = decipher.update(encryptedData, 'hex', 'utf8');
+        decrypted += decipher.final('utf8');
+
+        // Parse the decrypted JSON
+        return JSON.parse(decrypted);
+    } catch (error) {
+        console.error('Decryption failed:', error.message);
+        throw new Error('Failed to decrypt data. The password might be incorrect or the data is corrupted.');
+    }
+}
+
 
 // =================================================================================================
 // Listeners for events from Angular
@@ -451,40 +533,68 @@ function writeVhaFileAndStartExtraction(): void {
  * open via `openThisDamnFile` method
  */
 
-ipcMain.on('system-open-file-through-modal', (event, somethingElse) => {  // TODO -- check -- do I need to save vha to disk?
-    dialog.showOpenDialog(win, {
-        title: systemMessages.selectPreviousHub,
-        filters: [{
-            name: 'Video Hub App 2 files', // TODO -- i18n FIX ME
-            extensions: ['vha2']
-        }],
+ipcMain.on('system-open-file-through-modal', (event, somethingElse) => {
+    dialog.showOpenDialog({
+        title: 'Select Previous Hub',  // Update to your desired title or use i18n
+        filters: [{name: 'Video Hub App 2 files', extensions: ['vha2']}],
         properties: ['openFile']
     }).then(result => {
-        const chosenFile: string = result.filePaths[0];
-
-        if (chosenFile) {
-            openThisDamnFile(chosenFile);
-        }
+        const chosenFile = result.filePaths[0];
+        openThisDamnFile(chosenFile, 2);
+        //
+        // if (chosenFile) {
+        //     createPasswordPrompt().then(password => {
+        //         if (typeof password === "string") {
+        //         }
+        //     }).catch(err => {
+        //         console.error('Password prompt error:', err.message);
+        //     });
+        // }
     }).catch(err => {
+        console.error('File dialog error:', err.message);
     });
 });
+
+function createPasswordPrompt() {
+    return new Promise((resolve, reject) => {
+        const passwordWindow = new BrowserWindow({
+            width: 300,
+            height: 150,
+            webPreferences: {
+                nodeIntegration: true,
+                contextIsolation: false
+            }
+        });
+
+        const htmlPath = path.join(__dirname, 'src', 'app', 'components', 'load-file-password-dialog.html');
+        console.log("htmlWindowPath", htmlPath);
+        passwordWindow.loadFile(htmlPath);
+
+        ipcMain.once('password-submitted', (_event, password) => {
+            resolve(password);
+        });
+
+        passwordWindow.on('closed', () => {
+            reject(new Error('Password prompt was closed without submitting a password.'));
+        });
+    });
+}
 
 /**
  * Open .vha2 file (from given path)
  * save current VHA file to disk, if provided
  */
 ipcMain.on('load-this-vha-file',
-    (event, pathToVhaFile: string, finalObjectToSave: FinalObject) => {
-
+    (event, pathToVhaFile: string, finalObjectToSave: FinalObject, password: string) => {
         if (finalObjectToSave !== null) {
-
             writeVhaFileToDisk(finalObjectToSave, GLOBALS.currentlyOpenVhaFile, () => {
                 console.log('.vha2 file saved before opening another');
-                openThisDamnFile(pathToVhaFile);
+                openRecentFile(pathToVhaFile, password);
             });
-
+        } else if (password) {
+            openRecentFile(pathToVhaFile, password);
         } else {
-            openThisDamnFile(pathToVhaFile);
+            GLOBALS.angularApp.sender.send('please-open-wizard');
         }
     });
 
@@ -517,7 +627,7 @@ ipcMain.on('system-messages-updated', (event, newSystemMessages): void => {
  */
 ipcMain.on('open-file', (event, pathToVhaFile) => {
     event.preventDefault();
-    openThisDamnFile(pathToVhaFile);
+    openThisDamnFile(pathToVhaFile, 5);
 });
 
 /**

@@ -763,7 +763,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
         this.electronService.webFrame.setZoomFactor(this.appState.currentZoomLevel);
       }
       if (settingsObject.appState.currentVhaFile) {
-        this.loadThisVhaFile(settingsObject.appState.currentVhaFile);
+        this.loadThisVhaFile(settingsObject.appState.currentVhaFile, GLOBALS.hubPassword);
       } else {
         this.wizard.showWizard = true;
         this.flickerReduceOverlay = false;
@@ -862,7 +862,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
         const fullPath: string = ev.dataTransfer.files[0].path;
         ev.preventDefault();
         if (fullPath.endsWith('.vha2')) {
-          this.loadThisVhaFile(fullPath);
+          this.loadThisVhaFile(fullPath,GLOBALS.hubPassword);
         }
       }
     };
@@ -1005,9 +1005,9 @@ export class HomeComponent implements OnInit, AfterViewInit {
     this.electronService.ipcRenderer.send('just-started');
   }
 
-  public loadThisVhaFile(fullPath: string): void {
+  public loadThisVhaFile(fullPath: string, password: string): void {
     this.electronService.ipcRenderer.
-    send('load-this-vha-file', fullPath, this.getFinalObjectForSaving());
+    send('load-this-vha-file', fullPath, this.getFinalObjectForSaving(), password);
   }
 
   public loadFromFile(): void {
@@ -1066,7 +1066,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
       const propsToReturn: FinalObject = {
         addTags: this.autoTagsSaveService.getAddTags(),
         hubName: this.appState.hubName,
-        password: this.appState.hubPassword,
+        password: this.appState.hubPassword, // TODO -- should be deleted
         images: this.imageElementService.imageElements,
         // TODO -- rename `selectedSourceFolder` and make sure to update `finalArrayNeedsSaving` when inputDirs changes
         inputDirs: this.sourceFolderService.selectedSourceFolder,
@@ -1384,10 +1384,10 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
   /**
    * Handle click from html to open a recently-opened VHA file
-   * @param index - index of the file from `vhaFileHistory`
+   * @param data
    */
-  openFromHistory(index: number): void {
-    this.loadThisVhaFile(this.vhaFileHistory[index].vhaFilePath);
+  openFromHistory(data:{index: number, password: string}): void {
+    this.loadThisVhaFile(this.vhaFileHistory[data.index].vhaFilePath, data.password);
   }
 
   /**

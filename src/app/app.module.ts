@@ -110,6 +110,7 @@ import { WrapperPipe } from './pipes/wrapper.pipe';
 import { YearFilterPipe } from './pipes/year-filter.pipe';
 import { YearPipe } from './pipes/year.pipe';
 import {PasswordSettingsComponent} from "./components/password-settings/password-settings.component";
+import {PasswordPromptComponent} from "./components/password-prompt/password-prompt.component";
 
 @NgModule({
   declarations: [
@@ -200,6 +201,7 @@ import {PasswordSettingsComponent} from "./components/password-settings/password
         TranslateModule.forRoot(),
         VirtualScrollerModule,
         PasswordSettingsComponent,
+        PasswordPromptComponent,
     ],
   providers: [
     AutoTagsSaveService,

@@ -6,6 +6,7 @@ import type { ImportStage } from '../../../../node/main-support';
 import type { WizardOptions } from '../../../../interfaces/wizard-options.interface';
 
 import { historyItemRemove, slowFadeIn } from '../../common/animations';
+import {GLOBALS} from "../../../../node/main-globals";
 
 @Component({
   selector: 'app-wizard',
@@ -20,12 +21,14 @@ import { historyItemRemove, slowFadeIn } from '../../common/animations';
   animations: [historyItemRemove, slowFadeIn]
 })
 export class WizardComponent {
+  private selectedIndex: number;
+  isPasswordPromptVisible = false;
 
   @Output() clearRecentlyViewedHistory = new EventEmitter<any>();
   @Output() hideWizard                 = new EventEmitter<any>();
   @Output() importFresh                = new EventEmitter<any>();
   @Output() loadFromFile               = new EventEmitter<any>();
-  @Output() openFromHistory            = new EventEmitter<number>();
+  @Output() openFromHistory = new EventEmitter<{ index: number, password: string }>();
   @Output() removeFromHistory          = new EventEmitter<number>();
   @Output() selectOutputDirectory      = new EventEmitter<any>();
   @Output() selectSourceDirectory      = new EventEmitter<any>();
@@ -35,6 +38,18 @@ export class WizardComponent {
   @Input() vhaFileHistory: HistoryItem[];
   @Input() wizard: WizardOptions;
 
+
+
+  openPasswordPrompt(index: number): void {
+    this.selectedIndex = index;
+    this.isPasswordPromptVisible = true;
+  }
+
+
+  handlePasswordSubmission(password: string): void {
+    this.openFromHistory.emit({ index: this.selectedIndex, password });
+    this.isPasswordPromptVisible = false;
+  }
   /**
    * Only allow characters and numbers for hub name
    * @param event key press event

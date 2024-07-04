@@ -6,22 +6,34 @@
  * the same way each time they run no matter the outside state
  */
 
-import type { VhaGlobals } from './main-globals';
-import { GLOBALS } from './main-globals'; // TODO -- eliminate dependence on `GLOBALS` in this file!
-
+import type {VhaGlobals} from './main-globals';
+import {GLOBALS} from './main-globals'; // TODO -- eliminate dependence on `GLOBALS` in this file!
 import * as path from 'path';
-import {createDecipher} from "crypto";
+import type {Stats} from 'fs';
+
+import type {
+  FinalObject,
+  ImageElement,
+  InputSources,
+  ResolutionString,
+  ScreenshotSettings
+} from '../interfaces/final-object.interface';
+import {NewImageElement} from '../interfaces/final-object.interface';
+import {resetWatchers, startFileSystemWatching} from './main-extract-async';
+import CryptoJS from 'crypto-js';
+
+const crypto = require('crypto');
 
 const exec = require('child_process').exec;
 const ffprobePath = require('@ffprobe-installer/ffprobe').path.replace('app.asar', 'app.asar.unpacked');
 const fs = require('fs');
 const hasher = require('crypto').createHash;
-import type { Stats } from 'fs';
 
-import type { FinalObject, ImageElement, ScreenshotSettings, InputSources, ResolutionString } from '../interfaces/final-object.interface';
-import { NewImageElement } from '../interfaces/final-object.interface';
-import { startFileSystemWatching, resetWatchers } from './main-extract-async';
-import {createCipher} from "crypto";
+const algorithm = 'aes-256-ctr';
+const IV_LENGTH = 16;
+import { createCipheriv, randomBytes, createDecipheriv } from 'crypto';
+
+
 
 interface ResolutionMeta {
   label: ResolutionString;
@@ -224,17 +236,7 @@ export function writeVhaFileToDisk(finalObject: FinalObject, pathToTheFile: stri
 
   finalObject.numOfFolders = countFoldersInFinalArray(finalObject.images);
 
-  const json = JSON.stringify(finalObject);
-
-
-  const cipher = createCipher('aes-256-cbc', GLOBALS.hubPassword);
-  let encryptedData = cipher.update(json, 'utf8', 'hex');
-  encryptedData += cipher.final('hex');
-
-  console.log("data: " , encryptedData);
-
-
-  // backup current file
+  const encryptedData = encryptJson(finalObject);
   try {
     fs.renameSync(pathToTheFile, pathToTheFile + '.bak');
   } catch (err) {
@@ -247,6 +249,51 @@ export function writeVhaFileToDisk(finalObject: FinalObject, pathToTheFile: stri
 
   // TODO ? CATCH ERRORS ?
 }
+
+
+
+
+
+function encryptJson(jsonObject) {
+  const secretKey = crypto.createHash('sha256').update('Password').digest();
+  // Generate a 32-byte secret key (256 bits) from your passphrase
+
+  // Generate a random Initialization Vector (IV)
+  const iv = crypto.randomBytes(16);
+
+  // Convert JSON object to a string
+  const jsonString = JSON.stringify(jsonObject);
+
+  // Create a cipher object using AES-256-CBC
+  const cipher = crypto.createCipheriv('aes-256-cbc', secretKey, iv);
+
+  // Encrypt the data
+  let encrypted = cipher.update(jsonString, 'utf8', 'hex');
+  encrypted += cipher.final('hex');
+
+  // Combine IV and encrypted data
+  return iv.toString('hex') + ':' + encrypted;
+}
+
+function decryptJson(encryptedResult) {
+  const secretKey = crypto.createHash('sha256').update('Password').digest();
+
+  // Parse the IV and encrypted data
+  const [ivHex, encryptedHex] = encryptedResult.split(':');
+  const iv = Buffer.from(ivHex, 'hex');
+  const encryptedData = Buffer.from(encryptedHex, 'hex');
+
+  // Create a decipher object
+  const decipher = crypto.createDecipheriv('aes-256-cbc', secretKey, iv);
+
+  // Decrypt the data
+  let decrypted = decipher.update(encryptedData, 'hex', 'utf8');
+  decrypted += decipher.final('utf8');
+
+  // Parse the decrypted JSON
+  return JSON.parse(decrypted);
+}
+
 
 /**
  * Strip out all the temporary fields

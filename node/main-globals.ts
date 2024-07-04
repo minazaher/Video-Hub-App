@@ -7,6 +7,7 @@ export const GLOBALS: VhaGlobals = {
   demo: false,                 // update `package.json` version to `#.#.#-demo` when building the demo             <---- !!!
   hubName: 'untitled',   // in case user doesn't name their hub any name
   hubPassword: '',
+  enteredPassword: '',
   macVersion: false,           // auto updated by `main.ts`
   readyToQuit: false,          // hack to quit gracefully
   selectedOutputFolder: '',
@@ -34,6 +35,7 @@ export interface VhaGlobals {
   demo: boolean;
   hubName: string;
   hubPassword: string;
+  enteredPassword:string;
   macVersion: boolean;
   readyToQuit: boolean;
   screenshotSettings: ScreenshotSettings;
