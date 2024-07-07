@@ -1,4 +1,9 @@
 {
+  "Password_Prompt": {
+    "enterPassword": "Enter Your Password",
+    "Password":  "Password",
+    "Submit": "Submit"
+  },
   "BUTTONS": {
     "autoFileTagsDescription": "File name auto-generated tags",
     "autoFileTagsHint": "File name tags",
@@ -491,6 +496,7 @@
     "loadFromFile": "Load from file",
     "minutes": "minutes",
     "nameYourHub": "Name your hub",
+    "addHubPassword": "Add Hub Password",
     "oneScreenshotEvery": "1 screenshot every",
     "openPrevious": "Open previous hub",
     "openPreviouslySaved": "Open a previously-saved Video Hub",

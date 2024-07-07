@@ -46,6 +46,8 @@
   },
   "dependencies": {
     "@ffprobe-installer/ffprobe": "2.1.2",
+    "@fortawesome/angular-fontawesome": "^0.15.0",
+    "@fortawesome/fontawesome-free": "^6.5.2",
     "@ngx-translate/core": "15.0.0",
     "an-qrcode": "1.0.7",
     "async": "3.2.5",
@@ -63,6 +65,7 @@
     "ngx-virtual-scroller": "^4.0.3",
     "path": "0.12.7",
     "picomatch": "^4.0.2",
+    "primeng": "^17.18.3",
     "trash": "7.2.0",
     "tslib": "2.6.2",
     "ws": "8.17.0"

@@ -1,4 +1,9 @@
 {
+  "Password_Prompt": {
+    "enterPassword": "ادخل كلمة المرور",
+    "Password": "كلمة المرور",
+    "Submit": "ارسال"
+  },
   "BUTTONS": {
     "autoFileTagsDescription": "تمكين العلامات المنشأة تلقائيًا بناءً على أسماء ملفات الفيديو",
     "autoFileTagsHint": "تمكين علامات السيارات",
@@ -491,6 +496,7 @@
     "loadFromFile": "تحميل من ملف",
     "minutes": "الدقائق",
     "nameYourHub": "اسم مركزك",
+    "addHubPassword": "اضف كلمة سر لمركزك",
     "oneScreenshotEvery": "1 لقطة شاشة كل",
     "openPrevious": "افتح المحور السابق",
     "openPreviouslySaved": "افتح Video Hub المحفوظة مسبقًا",
