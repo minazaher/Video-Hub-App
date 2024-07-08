@@ -541,15 +541,6 @@ ipcMain.on('system-open-file-through-modal', (event, somethingElse) => {
     }).then(result => {
         const chosenFile = result.filePaths[0];
         openThisDamnFile(chosenFile, 2);
-        //
-        // if (chosenFile) {
-        //     createPasswordPrompt().then(password => {
-        //         if (typeof password === "string") {
-        //         }
-        //     }).catch(err => {
-        //         console.error('Password prompt error:', err.message);
-        //     });
-        // }
     }).catch(err => {
         console.error('File dialog error:', err.message);
     });
@@ -558,17 +549,22 @@ ipcMain.on('system-open-file-through-modal', (event, somethingElse) => {
 function createPasswordPrompt() {
     return new Promise((resolve, reject) => {
         const passwordWindow = new BrowserWindow({
-            width: 300,
-            height: 150,
+            width: 500,
+            height: 200,
             webPreferences: {
                 nodeIntegration: true,
                 contextIsolation: false
-            }
+            },
+          minimizable: false, // Disable the minimize button
+          maximizable: false, // Disable the maximize button
+          resizable: false,
+          skipTaskbar: true,
+          center:true
         });
 
         const htmlPath = path.join(__dirname, 'src', 'app', 'components', 'load-file-password-dialog.html');
-        console.log("htmlWindowPath", htmlPath);
         passwordWindow.loadFile(htmlPath);
+        console.log(`htmlPath`, htmlPath);
 
         ipcMain.once('password-submitted', (_event, password) => {
             resolve(password);
