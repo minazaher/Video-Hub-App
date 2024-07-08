@@ -1,11 +1,14 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import {Component, Input, Output, EventEmitter} from '@angular/core';
 
-import type { AllowedScreenshotHeight, AllowedScreenshotHeightString } from '../../../../interfaces/final-object.interface';
-import type { HistoryItem } from '../../../../interfaces/shared-interfaces';
-import type { ImportStage } from '../../../../node/main-support';
-import type { WizardOptions } from '../../../../interfaces/wizard-options.interface';
+import type {
+  AllowedScreenshotHeight,
+  AllowedScreenshotHeightString
+} from '../../../../interfaces/final-object.interface';
+import type {HistoryItem} from '../../../../interfaces/shared-interfaces';
+import type {ImportStage} from '../../../../node/main-support';
+import type {WizardOptions} from '../../../../interfaces/wizard-options.interface';
 
-import { historyItemRemove, slowFadeIn } from '../../common/animations';
+import {historyItemRemove, slowFadeIn} from '../../common/animations';
 import {GLOBALS} from "../../../../node/main-globals";
 
 @Component({
@@ -25,31 +28,52 @@ export class WizardComponent {
   isPasswordPromptVisible = false;
 
   @Output() clearRecentlyViewedHistory = new EventEmitter<any>();
-  @Output() hideWizard                 = new EventEmitter<any>();
-  @Output() importFresh                = new EventEmitter<any>();
-  @Output() loadFromFile               = new EventEmitter<any>();
+  @Output() hideWizard = new EventEmitter<any>();
+  @Output() importFresh = new EventEmitter<any>();
+  @Output() loadFromFile = new EventEmitter<any>();
   @Output() openFromHistory = new EventEmitter<{ index: number, password: string }>();
-  @Output() removeFromHistory          = new EventEmitter<number>();
-  @Output() selectOutputDirectory      = new EventEmitter<any>();
-  @Output() selectSourceDirectory      = new EventEmitter<any>();
+  @Output() removeFromHistory = new EventEmitter<number>();
+  @Output() selectOutputDirectory = new EventEmitter<any>();
+  @Output() selectSourceDirectory = new EventEmitter<any>();
 
   @Input() canCloseWizard: boolean;
   @Input() importStage: ImportStage;
   @Input() vhaFileHistory: HistoryItem[];
   @Input() wizard: WizardOptions;
+  visible: boolean = false;
+  showPassword: boolean = false;
 
 
+  /**
+   * Opens the password prompt given the index of the recently viewed history item.
+   *
+   * @param {number} index - The index of the recently viewed history item.
+   * @return {void} This function does not return a value.
+   */
 
   openPasswordPrompt(index: number): void {
     this.selectedIndex = index;
     this.isPasswordPromptVisible = true;
   }
 
+  /**
+   * Handles the submission of a password, If its not given, set as NONE.
+   *
+   * @param {string} password - The password to be submitted.
+   * @return {void} This function does not return a value.
+   */
 
   handlePasswordSubmission(password: string): void {
-    this.openFromHistory.emit({ index: this.selectedIndex, password });
+    password = password.trimEnd() || 'NONE';
+    this.openFromHistory.emit({index: this.selectedIndex, password});
     this.isPasswordPromptVisible = false;
   }
+
+  viewPassword(){
+    this.visible = !this.visible
+    this.showPassword =!this.showPassword;
+  }
+
   /**
    * Only allow characters and numbers for hub name
    * @param event key press event
